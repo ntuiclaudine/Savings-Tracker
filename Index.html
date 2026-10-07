@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Savings Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f6f4;--card:#fff;--ink:#12302b;--mute:#5d7570;--line:#d8e3df;--fill:#1f7a6b;--acc:#e8a317;--bad:#b3392f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1f1c;--card:#14302b;--ink:#e6f1ee;--mute:#8fb0a8;--line:#24463f;--fill:#3cb59f;--acc:#f0b73a;--bad:#e86a5e}}
+:root[data-theme="dark"]{--bg:#0d1f1c;--card:#14302b;--ink:#e6f1ee;--mute:#8fb0a8;--line:#24463f;--fill:#3cb59f;--acc:#f0b73a;--bad:#e86a5e}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.45}
+main{max-width:640px;margin:0 auto;padding:16px}
+h1{font-size:1.4rem;font-weight:800;margin:8px 0 14px}
+h2{font-size:1rem;font-weight:600;margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px}
+.tab{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;font:inherit;cursor:pointer}
+.tab[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.hero{display:flex;gap:18px;align-items:center}
+.jar{flex:none;width:92px;height:140px;border:3px solid var(--ink);border-radius:14px 14px 26px 26px;position:relative;overflow:hidden;background:transparent}
+.jar::before{content:"";position:absolute;left:-3px;right:-3px;top:-10px;height:8px;background:var(--ink)}
+.level{position:absolute;left:0;right:0;bottom:0;background:var(--fill);transition:height .6s ease}
+.level::after{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:var(--acc)}
+.big{font-size:2.2rem;font-weight:800;line-height:1.05}
+.mute{color:var(--mute);font-size:.9rem}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+label{display:block;font-size:.85rem;color:var(--mute);margin-bottom:4px}
+.f{flex:1 1 130px}
+input{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px}
+input:focus-visible,button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+button.p{font:inherit;font-weight:600;border:0;border-radius:10px;padding:11px 16px;background:var(--fill);color:#fff;cursor:pointer}
+button.s{font:inherit;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:10px;padding:9px 12px;cursor:pointer}
+button.x{border:0;background:none;color:var(--mute);cursor:pointer;font:inherit;padding:4px 8px}
+.stat{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.stat div{background:var(--bg);border-radius:10px;padding:10px}
+.stat b{display:block;font-size:1.1rem}
+ul{list-style:none;margin:0;padding:0}
+li{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+li:first-child{border-top:0}
+.pos{color:var(--fill);font-weight:600}.neg{color:var(--bad);font-weight:600}
+.warn{color:var(--bad)}
+details summary{cursor:pointer;font-weight:600}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.intro h2.lead{font-size:1.7rem;font-weight:800;line-height:1.15;margin:0 0 10px}
+.steps{counter-reset:s}
+.steps li{display:block;padding:12px 0 12px 40px;position:relative}
+.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:11px;width:28px;height:28px;border-radius:50%;background:var(--fill);color:#fff;font-weight:800;display:grid;place-items:center;font-size:.9rem}
+.steps b{display:block}
+.chk li{display:block;padding:7px 0 7px 26px;position:relative;border:0}
+.chk li::before{content:"✓";position:absolute;left:0;color:var(--fill);font-weight:800}
+#cover{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:calc(24px + env(safe-area-inset-top,0px)) 24px calc(24px + env(safe-area-inset-bottom,0px));color:#f2f6f4;background:radial-gradient(120% 80% at 50% 0%,#1f7a6b 0%,#12302b 55%,#0a1c19 100%);transition:opacity .6s ease,visibility .6s;cursor:pointer;overflow:hidden}
+#cover.out{opacity:0;visibility:hidden}
+#cover::before,#cover::after{content:"";position:absolute;border:1px solid rgba(232,163,23,.28);border-radius:50%;pointer-events:none}
+#cover::before{width:520px;height:520px;top:-210px;right:-240px}
+#cover::after{width:420px;height:420px;bottom:-180px;left:-200px}
+#cover>*{position:relative;z-index:1}
+.cj{width:110px;height:168px;border:4px solid #f2f6f4;border-radius:16px 16px 32px 32px;position:relative;overflow:hidden;margin-bottom:34px;animation:rise .8s ease both}
+.cj::before{content:"";position:absolute;left:-4px;right:-4px;top:-12px;height:10px;background:#f2f6f4}
+.cj .lv{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(180deg,#3cb59f,#1f7a6b);animation:fillup 2.4s .5s ease-out forwards}
+.cj .lv::after{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:#e8a317}
+.ck{font-size:.78rem;letter-spacing:.32em;text-transform:uppercase;color:#e8a317;font-weight:600;animation:rise .8s .2s ease both}
+.ct{font-size:2.5rem;line-height:1.05;font-weight:800;margin:12px 0 16px;animation:rise .8s .35s ease both}
+.cr{width:64px;height:3px;background:#e8a317;border-radius:2px;margin:0 auto 16px;animation:rise .8s .5s ease both}
+.cn{font-size:1.25rem;font-weight:600;letter-spacing:.04em;animation:rise .8s .65s ease both}
+.cs{font-size:.92rem;color:#a9c7bf;margin-top:4px;animation:rise .8s .8s ease both}
+.cb{margin-top:40px;font:inherit;font-weight:700;font-size:1rem;border:0;border-radius:999px;padding:14px 34px;background:#e8a317;color:#12302b;cursor:pointer;animation:rise .8s 1s ease both}
+.cb:focus-visible{outline:3px solid #f2f6f4;outline-offset:3px}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes fillup{from{height:0}to{height:72%}}
+@media (prefers-reduced-motion:reduce){#cover *{animation:none!important}#cover .lv{height:72%}}
+.note{font-size:.82rem;color:var(--mute);margin:0}
+input[type=checkbox]{width:auto;accent-color:var(--fill)}
+.auto{margin-top:12px;padding:12px;border-radius:10px;border:1px dashed var(--fill);font-size:.92rem}
+</style>
+</head>
+<body>
+<div id="cover" role="dialog" aria-label="Welcome">
+  <div class="cj" aria-hidden="true"><div class="lv"></div></div>
+  <div class="ck">The Locked</div>
+  <div class="ct">Savings<br>Method</div>
+  <div class="cr"></div>
+  <div class="cn">Claudine Ntui</div>
+  <div class="cs">Money Mentor</div>
+  <button class="cb" id="enter">Start saving</button>
+</div>
+<main>
+<div class="top"><h1>Savings Tracker</h1><button class="s" id="howto">How it works</button></div>
+<div class="tabs" id="tabs" role="group" aria-label="Goals"></div>
+<div id="app"></div>
+</main>
+<script>
+const KEY='savings-tracker-v1';
+let S={goals:[],active:null};
+try{const r=localStorage.getItem(KEY);if(r)S=JSON.parse(r)}catch(e){}
+if(!S.goals.length){S={goals:[{id:1,name:'Emergency fund',target:5000,date:'',monthly:200,entries:[]}],active:1}}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const $=id=>document.getElementById(id);
+const money=n=>(n<0?'-':'')+'$'+Math.abs(n).toLocaleString(undefined,{maximumFractionDigits:0});
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const g=()=>S.goals.find(x=>x.id===S.active)||S.goals[0];
+const saved=x=>x.entries.reduce((a,e)=>a+e.amt,0);
+const monthsBetween=(d)=>{const n=new Date(),t=new Date(d+'T00:00');return Math.max(0,(t.getFullYear()-n.getFullYear())*12+t.getMonth()-n.getMonth()+(t.getDate()>=n.getDate()?0:-1)+1)};
+const fmtDate=d=>d.toLocaleDateString(undefined,{month:'short',year:'numeric'});
+
+let view=S.intro?'app':'intro',mode='split';
+const dshort=d=>d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+function autoInfo(x){
+  const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),st=new Date((x.autoStart||'')+'T00:00');
+  if(isNaN(st))return{line:'Set a start date in goal settings.',gap:0};
+  const day=Math.min(31,Math.max(1,x.autoDay||1));
+  const at=(y,m)=>new Date(y,m,Math.min(day,new Date(y,m+1,0).getDate()));
+  let n=0,y=st.getFullYear(),m=st.getMonth(),next=null;
+  for(let i=0;i<600;i++){const d=at(y,m);if(d>=st){if(d<=today)n++;else{next=d;break}}m++;if(m>11){m=0;y++}}
+  const exp=n*x.autoAmt,got=x.entries.filter(e=>e.t>=st.getTime()).reduce((a,e)=>a+e.amt,0),gap=Math.round((exp-got)*100)/100;
+  const status=gap>0?`<span class="warn">Behind by ${money(gap)}</span>`:gap<0?`Ahead by ${money(-gap)}`:'On track';
+  return{gap,line:`Expected so far ${money(exp)} · Logged ${money(got)}<br>${status}${next?' · Next deposit '+dshort(next):''}`};
+}
+function renderIntro(){
+  $('tabs').innerHTML='';
+  $('app').innerHTML=`<div class="intro">
+  <section class="card">
+    <h2 class="lead">Make your savings hard to spend</h2>
+    <p style="margin:0">Willpower fails when money is one tap away. This tracker works best when your savings live in a place that's slightly inconvenient to reach, so you only touch them on purpose.</p>
+  </section>
+  <section class="card">
+    <h2>The setup we recommend</h2>
+    <ul class="steps">
+      <li><b>Open a money market account</b>Ideally at a different bank from the one you use every day, so it never shows up next to your spending money. It earns interest, so waiting is rewarded.</li>
+      <li><b>Say no to a debit card and checks</b>Ask the bank not to issue a card or checkbook for this account. No card means no swiping, no tapping, no saved details at online checkout.</li>
+      <li><b>Allow only two ways out</b>Interbank transfers, which typically take about 3 days to arrive, or a visit to a branch for an in-person withdrawal. That pause is the point: urges fade in 3 days, real emergencies don't.</li>
+      <li><b>Send money in before you can spend it</b>Pick the option below that matches how you're paid, then log each deposit here so your jar matches the account.</li>
+    </ul>
+  </section>
+  <section class="card">
+    <h2>How do you get paid?</h2>
+    <div class="tabs" role="group" aria-label="Pay type">
+      <button class="tab" data-mode="split" aria-pressed="${mode==='split'}">My employer can split my pay</button>
+      <button class="tab" data-mode="manual" aria-pressed="${mode==='manual'}">One account or paper checks</button>
+    </div>
+    ${mode==='split'?`<ul class="chk">
+      <li>Ask payroll to send a fixed amount or percentage straight to the money market account, and the rest to your spending account.</li>
+      <li>Because the savings never touch your spending account, there's nothing to decide on payday.</li>
+      <li>Rent or other income can be pointed at the same account, so it saves automatically too.</li>
+      <li>Log one entry per payday, or one total per month, in this tracker.</li>
+    </ul>`:`<p class="mute" style="margin:0 0 6px"><b style="color:var(--ink)">Pay goes into a single account</b></p>
+    <ul class="chk">
+      <li>Set up a recurring transfer from that account to the money market account, scheduled for payday or the day after.</li>
+      <li>Move the savings first, before you pay bills or spend, and treat the rest as your budget.</li>
+      <li>Ask payroll whether a second account or a split deposit is possible. Some employers allow it on request.</li>
+    </ul>
+    <p class="mute" style="margin:10px 0 6px"><b style="color:var(--ink)">You get paper checks</b></p>
+    <ul class="chk">
+      <li>Deposit your savings amount into the money market account first, by mobile deposit or at a branch.</li>
+      <li>Put only the remainder into your spending account. If you're at a branch, ask them to split the deposit for you.</li>
+      <li>Do it the day you're paid. The longer a check sits in your wallet, the easier it is to spend.</li>
+      <li>Ask your employer about direct deposit if it's available.</li>
+    </ul>`}
+    <p class="note" style="margin-top:10px">If you collect rent, you can route part of it into this account too. Keep clear records for taxes, and ask an accountant how to separate rental income from personal savings.</p>
+  </section>
+  <section class="card">
+    <h2>Before you open one, check</h2>
+    <ul class="chk">
+      <li>The account is insured (FDIC for banks, NCUA for credit unions, up to $250,000 per depositor in the US).</li>
+      <li>Monthly fees and minimum balance, so the account doesn't cost you money.</li>
+      <li>The interest rate, and whether it's variable.</li>
+      <li>Transfer and withdrawal limits, and branch access if you want in-person withdrawals.</li>
+      <li>That the bank can issue the account without a card, and that online transfers can be set to standard speed.</li>
+    </ul>
+  </section>
+  <section class="card">
+    <h2>What this app does</h2>
+    <p style="margin:0 0 10px">It tracks the money you've put in that account against your goal and shows when you'll reach it. It doesn't connect to your bank, so you enter deposits and withdrawals yourself. Compare the total with your bank statement once a month.</p>
+    <p class="note">This is general information, not financial advice. Account rules and rates vary by bank, so confirm details with the bank before opening.</p>
+  </section>
+  <button class="p" id="start" style="width:100%;font-size:1.05rem;padding:14px">${S.intro?'Back to my tracker':'Start tracking'}</button>
+  </div>`;
+}
+function render(){
+  if(view==='intro')return renderIntro();
+  const x=g();S.active=x.id;
+  $('tabs').innerHTML=S.goals.map(k=>`<button class="tab" aria-pressed="${k.id===x.id}" data-id="${k.id}">${esc(k.name)}</button>`).join('')+`<button class="tab" id="addg">+ New goal</button>`;
+  let autoHTML='';
+  if(x.autoOn&&x.autoAmt>0){const a=autoInfo(x);
+    autoHTML=`<div class="auto"><b>Auto deposit: ${money(x.autoAmt)} on day ${x.autoDay||1} each month</b><br>${a.line}${a.gap>0?`<br><button class="s" id="catch" style="margin-top:8px">Log ${money(a.gap)} as deposited</button>`:''}</div>`}
+  const sv=saved(x),pct=x.target>0?Math.min(100,Math.max(0,sv/x.target*100)):0,rem=Math.max(0,x.target-sv);
+  let proj='Set a monthly amount to see your finish date.',need='';
+  if(rem===0)proj='Goal reached. Nice work.';
+  else if(x.monthly>0){const m=Math.ceil(rem/x.monthly);const d=new Date();d.setMonth(d.getMonth()+m);proj=`At ${money(x.monthly)}/month you finish in ${m} month${m>1?'s':''} (${fmtDate(d)}).`}
+  if(x.date&&rem>0){const m=monthsBetween(x.date);
+    if(m>0){const n=Math.ceil(rem/m);need=`To hit ${fmtDate(new Date(x.date+'T00:00'))}, save ${money(n)}/month.`;if(x.monthly>0&&x.monthly<n)need+=` <span class="warn">That's ${money(n-x.monthly)} more than your plan.</span>`}
+    else need='<span class="warn">Your deadline has passed. Update the date.</span>'}
+  $('app').innerHTML=`
+  <section class="card">
+    <div class="hero">
+      <div class="jar" role="img" aria-label="${pct.toFixed(0)} percent saved"><div class="level" style="height:${pct}%"></div></div>
+      <div><div class="big">${money(sv)}</div><div class="mute">of ${money(x.target)} · ${pct.toFixed(0)}% saved</div>
+      <p style="margin:10px 0 0">${proj}</p>${need?`<p class="mute" style="margin:6px 0 0">${need}</p>`:''}</div>
+    </div>
+    <div class="stat"><div><span class="mute">Left to save</span><b>${money(rem)}</b></div><div><span class="mute">Deposits</span><b>${x.entries.length}</b></div></div>${autoHTML}
+  </section>
+  <section class="card">
+    <h2>Add money</h2>
+    <div class="row">
+      <div class="f"><label for="amt">Amount ($)</label><input id="amt" type="number" inputmode="decimal" min="0" step="any" placeholder="50"></div>
+      <div class="f"><label for="note">Note (optional)</label><input id="note" placeholder="Paycheck"></div>
+    </div>
+    <div class="row" style="margin-top:12px"><button class="p" id="dep">Add deposit</button><button class="s" id="wd">Record withdrawal</button></div>
+  </section>
+  <section class="card">
+    <h2>History</h2>
+    ${x.entries.length?'<ul>'+x.entries.slice().reverse().map((e,i)=>`<li><span>${esc(e.note||(e.amt>0?'Deposit':'Withdrawal'))}<br><span class="mute">${new Date(e.t).toLocaleDateString()}</span></span><span><span class="${e.amt>0?'pos':'neg'}">${e.amt>0?'+':''}${money(e.amt)}</span><button class="x" data-del="${x.entries.length-1-i}" aria-label="Delete entry">✕</button></span></li>`).join('')+'</ul>':'<p class="mute" style="margin:0">No deposits yet. Add your first one above.</p>'}
+  </section>
+  <section class="card">
+    <details><summary>Goal settings</summary>
+    <div class="row" style="margin-top:12px">
+      <div class="f"><label for="gn">Name</label><input id="gn" value="${esc(x.name)}"></div>
+      <div class="f"><label for="gt">Target ($)</label><input id="gt" type="number" inputmode="decimal" value="${x.target}"></div>
+      <div class="f"><label for="gm">Monthly plan ($)</label><input id="gm" type="number" inputmode="decimal" value="${x.monthly}"></div>
+      <div class="f"><label for="gd">Deadline (optional)</label><input id="gd" type="date" value="${x.date}"></div>
+    </div>
+    <h2 style="margin-top:16px">Auto deposit</h2>
+    <label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" id="ao" ${x.autoOn?'checked':''}> My bank sends money to this account automatically</label>
+    <div class="row" style="margin-top:10px">
+      <div class="f"><label for="aa">Amount each month ($)</label><input id="aa" type="number" inputmode="decimal" value="${x.autoAmt||''}"></div>
+      <div class="f"><label for="ad">Day of month (1-31)</label><input id="ad" type="number" min="1" max="31" value="${x.autoDay||1}"></div>
+      <div class="f"><label for="as">Starting from</label><input id="as" type="date" value="${x.autoStart||''}"></div>
+    </div>
+    <p class="mute" style="margin:8px 0 0">The app can't move money. It checks your logged deposits against this schedule and tells you when you're behind.</p>
+    <div class="row" style="margin-top:12px"><button class="p" id="sg">Save settings</button><button class="s" id="dg">Delete goal</button></div>
+    <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+    <h2>Emergency fund helper</h2>
+    <div class="row">
+      <div class="f"><label for="ex">Monthly expenses ($)</label><input id="ex" type="number" inputmode="decimal" placeholder="2500"></div>
+      <div class="f"><label for="mo">Months to cover</label><input id="mo" type="number" value="3" min="1" max="12"></div>
+    </div>
+    <div class="row" style="margin-top:12px"><button class="s" id="ef">Set target from expenses</button></div>
+    <p class="mute">Most guidance suggests 3 to 6 months of essential expenses.</p></details>
+  </section>
+  <section class="card">
+    <h2>Backup and restore</h2>
+    <div class="row"><button class="p" id="bk">Download backup</button><button class="s" id="csv">Export history (CSV)</button><button class="s" id="rs">Restore from file</button></div>
+    <input id="rf" type="file" accept=".json,application/json" hidden>
+    <p class="mute" id="bmsg" role="status" style="margin:10px 0 0">Backups include all goals and deposits. Restoring replaces what's on this device.</p>
+  </section>
+  <p class="mute" style="text-align:center">Saved in this browser only. Nothing is sent anywhere.</p>`;
+}
+document.addEventListener('click',e=>{
+  const t=e.target,x=g();
+  if(t.id==='howto'){view='intro';window.scrollTo(0,0)}
+  else if(t.id==='start'){S.intro=true;view='app';window.scrollTo(0,0)}
+  else if(t.dataset.mode){mode=t.dataset.mode}
+  else if(t.dataset.id){S.active=+t.dataset.id}
+  else if(t.id==='addg'){const id=Date.now();S.goals.push({id,name:'New goal',target:1000,date:'',monthly:100,entries:[]});S.active=id}
+  else if(t.id==='dep'||t.id==='wd'){const v=parseFloat($('amt').value);if(!(v>0)){$('amt').focus();return}
+    x.entries.push({amt:t.id==='dep'?v:-v,note:$('note').value.trim(),t:Date.now()})}
+  else if(t.dataset.del!==undefined){x.entries.splice(+t.dataset.del,1)}
+  else if(t.id==='sg'){x.name=$('gn').value.trim()||'Goal';x.target=Math.max(0,parseFloat($('gt').value)||0);x.monthly=Math.max(0,parseFloat($('gm').value)||0);x.date=$('gd').value;
+    x.autoOn=$('ao').checked;x.autoAmt=Math.max(0,parseFloat($('aa').value)||0);x.autoDay=Math.min(31,Math.max(1,parseInt($('ad').value)||1));
+    x.autoStart=$('as').value||(x.autoOn?new Date().toLocaleDateString('en-CA'):'');
+    if(x.autoOn&&!(x.autoAmt>0)){x.autoOn=false}}
+  else if(t.id==='catch'){const a=autoInfo(x);if(a.gap>0)x.entries.push({amt:a.gap,note:'Auto deposit',t:Date.now()})}
+  else if(t.id==='dg'){if(S.goals.length>1&&confirm('Delete this goal and its history?')){S.goals=S.goals.filter(k=>k.id!==x.id);S.active=S.goals[0].id}else if(S.goals.length<=1){alert('Keep at least one goal.');return}else return}
+  else if(t.id==='ef'){const v=parseFloat($('ex').value),m=parseFloat($('mo').value)||3;if(!(v>0)){$('ex').focus();return}x.target=Math.round(v*m)}
+  else return;
+  save();render();
+});
+const say=m=>{const b=$('bmsg');if(b)b.textContent=m};
+async function dl(name,data){
+  let d=null;try{if(window.claude&&window.claude.use)d=await window.claude.use('downloads')}catch(e){}
+  if(d){
+    try{await d.save({filename:name,data});say('Saved '+name+'.')}
+    catch(e){say(e&&e.code==='declined'?'Download cancelled.':'Could not save the file. Try again.')}
+    return;
+  }
+  try{
+    const bl=new Blob([data],{type:name.endsWith('.csv')?'text/csv':'application/json'});
+    const u=URL.createObjectURL(bl),l=document.createElement('a');
+    l.href=u;l.download=name;document.body.appendChild(l);l.click();l.remove();
+    setTimeout(()=>URL.revokeObjectURL(u),1500);say('Saved '+name+'. Check your Downloads or Files app.');
+  }catch(e){say('Could not save the file. Try another browser.')}
+}
+const stamp=()=>new Date().toISOString().slice(0,10);
+document.addEventListener('click',e=>{
+  const id=e.target.id;
+  if(id==='bk')dl('savings-backup-'+stamp()+'.json',JSON.stringify({app:'savings-tracker',version:1,data:S},null,2));
+  else if(id==='csv'){const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+    const rows=[['Goal','Date','Amount','Note']];
+    S.goals.forEach(k=>k.entries.forEach(en=>rows.push([k.name,new Date(en.t).toISOString().slice(0,10),en.amt,en.note||''])));
+    dl('savings-history-'+stamp()+'.csv',rows.map(r=>r.map(q).join(',')).join('\n'))}
+  else if(id==='rs')$('rf').click();
+});
+document.addEventListener('change',e=>{
+  if(e.target.id!=='rf')return;
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{
+    const j=JSON.parse(r.result),d=j&&j.data;
+    if(!d||!Array.isArray(d.goals)||!d.goals.length||!d.goals.every(k=>k&&k.id&&Array.isArray(k.entries)))throw 0;
+    if(!confirm('Replace everything on this device with the backup?'))return;
+    S={goals:d.goals,active:d.active,intro:true};view='app';save();render();say('Backup restored.');
+  }catch(x){say('That file is not a valid savings backup.')}};
+  r.readAsText(f);e.target.value='';
+});
+(function(){const c=$('cover');if(!c)return;
+  const close=()=>{c.classList.add('out');setTimeout(()=>c.remove(),700)};
+  c.addEventListener('click',close);setTimeout(close,6000);$('enter').focus();
+})();
+render();
+</script>
+</body>
+</html>
